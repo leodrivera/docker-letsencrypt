@@ -47,6 +47,11 @@ if [ -z "$GID" ]; then
   GID=0
 fi
 
+if [ -z "$PKCS12_PASSWORD" ]; then
+  echo "INFO: No PKCS12_PASSWORD specified, using blank password"
+  PKCS12_PASSWORD=""
+fi
+
 # Print variables
 echo "DUCKDNS_TOKEN: $DUCKDNS_TOKEN"
 echo "DUCKDNS_DOMAIN: $DUCKDNS_DOMAIN"
@@ -57,6 +62,7 @@ echo "LETSENCRYPT_CHAIN: $LETSENCRYPT_CHAIN"
 echo "TESTING: $TESTING"
 echo "UID: $UID"
 echo "GID: $GID"
+echo "PKCS12_PASSWORD: $PKCS12_PASSWORD"
 
 if [ -z "$LETSENCRYPT_EMAIL" ]; then
   EMAIL_PARAM="--register-unsafely-without-email"
@@ -90,8 +96,6 @@ certbot certonly --manual --preferred-challenges dns \
   "${CHAIN_PARAM[@]}" $EMAIL_PARAM -d $LETSENCRYPT_DOMAIN \
   --agree-tos --manual-public-ip-logging-ok --keep $TEST_PARAM
 
-chown -R $UID:$GID /etc/letsencrypt
-
 # Check for successful certificate generation
 if [ ! -d "/etc/letsencrypt/live/${LETSENCRYPT_DOMAIN#\*\.}" ] || \
    [ ! -f "/etc/letsencrypt/live/${LETSENCRYPT_DOMAIN#\*\.}/fullchain.pem" ] || \
@@ -99,6 +103,14 @@ if [ ! -d "/etc/letsencrypt/live/${LETSENCRYPT_DOMAIN#\*\.}" ] || \
   echo "ERROR: Failed to create SSL certificates"
   exit 1
 fi
+
+openssl pkcs12 -export -out /etc/letsencrypt/live/$DUCKDNS_DOMAIN/certificate.p12 \
+  -inkey /etc/letsencrypt/live/$DUCKDNS_DOMAIN/privkey.pem \
+  -in /etc/letsencrypt/live/$DUCKDNS_DOMAIN/cert.pem \
+  -certfile /etc/letsencrypt/live/$DUCKDNS_DOMAIN/chain.pem \
+  -passout pass:$PKCS12_PASSWORD
+
+chown -R $UID:$GID /etc/letsencrypt
 
 # Check if certificates require renewal twice a day
 while :; do
