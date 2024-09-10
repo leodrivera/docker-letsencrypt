@@ -1,5 +1,3 @@
-version: '2.4'
-
 services:
   duckdns:
     image: maksimstojkovic/duckdns
@@ -11,13 +9,14 @@ services:
     restart: unless-stopped
 
   letsencrypt:
-    image: maksimstojkovic/letsencrypt
+    image: leodrivera/letsencrypt
     container_name: letsencrypt
     volumes:
       - ./certs:/etc/letsencrypt
     environment:
       - DUCKDNS_TOKEN=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
       - DUCKDNS_DOMAIN=test.duckdns.org
+      - PKCS12_PASSWORD= #optional
       - LETSENCRYPT_DOMAIN= #optional
       - LETSENCRYPT_WILDCARD=false #optional
       - LETSENCRYPT_EMAIL= #optional
