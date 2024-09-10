@@ -52,6 +52,17 @@ if [ -z "$PKCS12_PASSWORD" ]; then
   PKCS12_PASSWORD=""
 fi
 
+get_pkcs12_cert()
+{
+  echo "INFO: Generating pkcs12 certificate"
+  openssl pkcs12 -export -out /etc/letsencrypt/live/$DUCKDNS_DOMAIN/certificate.p12 \
+    -inkey /etc/letsencrypt/live/$DUCKDNS_DOMAIN/privkey.pem \
+    -in /etc/letsencrypt/live/$DUCKDNS_DOMAIN/cert.pem \
+    -certfile /etc/letsencrypt/live/$DUCKDNS_DOMAIN/chain.pem \
+    -passout pass:$PKCS12_PASSWORD
+  chown -R $UID:$GID /etc/letsencrypt
+}
+
 # Print variables
 echo "DUCKDNS_TOKEN: $DUCKDNS_TOKEN"
 echo "DUCKDNS_DOMAIN: $DUCKDNS_DOMAIN"
@@ -87,14 +98,14 @@ echo "certbot certonly --manual --preferred-challenges dns \
   --manual-auth-hook /scripts/auth.sh \
   --manual-cleanup-hook /scripts/cleanup.sh \
   ${CHAIN_PARAM[@]} $EMAIL_PARAM -d $LETSENCRYPT_DOMAIN \
-  --agree-tos --manual-public-ip-logging-ok --keep $TEST_PARAM"
+  --agree-tos --keep $TEST_PARAM"
 
 # Create certificates
 certbot certonly --manual --preferred-challenges dns \
   --manual-auth-hook /scripts/auth.sh \
   --manual-cleanup-hook /scripts/cleanup.sh \
   "${CHAIN_PARAM[@]}" $EMAIL_PARAM -d $LETSENCRYPT_DOMAIN \
-  --agree-tos --manual-public-ip-logging-ok --keep $TEST_PARAM
+  --agree-tos --keep $TEST_PARAM
 
 # Check for successful certificate generation
 if [ ! -d "/etc/letsencrypt/live/${LETSENCRYPT_DOMAIN#\*\.}" ] || \
@@ -104,13 +115,7 @@ if [ ! -d "/etc/letsencrypt/live/${LETSENCRYPT_DOMAIN#\*\.}" ] || \
   exit 1
 fi
 
-openssl pkcs12 -export -out /etc/letsencrypt/live/$DUCKDNS_DOMAIN/certificate.p12 \
-  -inkey /etc/letsencrypt/live/$DUCKDNS_DOMAIN/privkey.pem \
-  -in /etc/letsencrypt/live/$DUCKDNS_DOMAIN/cert.pem \
-  -certfile /etc/letsencrypt/live/$DUCKDNS_DOMAIN/chain.pem \
-  -passout pass:$PKCS12_PASSWORD
-
-chown -R $UID:$GID /etc/letsencrypt
+get_pkcs12_cert
 
 # Check if certificates require renewal twice a day
 while :; do
@@ -120,6 +125,6 @@ while :; do
   sleep $((${LETSENCRYPT_DELAY} * 60)) # Convert to seconds
 
   echo "INFO: Attempting SSL certificate renewal"
-  certbot --manual-public-ip-logging-ok renew
-  chown -R $UID:$GID /etc/letsencrypt
+  certbot renew
+  get_pkcs12_cert
 done
