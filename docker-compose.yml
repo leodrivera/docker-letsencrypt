@@ -19,6 +19,7 @@ services:
       - PKCS12_PASSWORD= #optional
       - LETSENCRYPT_DOMAIN= #optional
       - LETSENCRYPT_WILDCARD=false #optional
+      - LETSENCRYPT_WILDCARD_DOMAIN_SAN=false #optional
       - LETSENCRYPT_EMAIL= #optional
       - TESTING=false #optional
       - UID=0 #optional
