@@ -12,12 +12,9 @@ Automatically generates Let's Encrypt certificates using a lightweight Docker co
 
 * `DUCKDNS_TOKEN`: Duck DNS account token (obtained from [Duck DNS](https://www.duckdns.org)) (*required*)
 * `DUCKDNS_DOMAIN`: Full Duck DNS domain (e.g. `test.duckdns.org`) (*required*)
-  * Multiple domains **belonging to the same token** can be entered as a comma-separated list of values (e.g. `test1.duckdns.org,test2.duckdns.org`).
 * `PKCS12_PASSWORD`: password to be used when exporting the pkcs12 certificate (optional, default: '')
 * `LETSENCRYPT_DOMAIN`: Domain to generate SSL cert for. By default the SSL certificate is generated for `DUCKDNS_DOMAIN` (optional)
 * `LETSENCRYPT_WILDCARD`: `true` or `false`, indicating whether the SSL certificate should be for subdomains *only* of `LETSENCRYPT_DOMAIN` (i.e. `*.test.duckdns.org`), or for the main domain *only* (i.e. `test.duckdns.org`) (optional, default: `false`)
-  * Note: using this in combination with multiple domains will affect only the first domain in the comma-separated list
-* `LETSENCRYPT_WILDCARD_DOMAIN_SAN`: Enables the inclusion of both the wildcard domain (`*.test.duckdns.org`) and the main domain (`test.duckdns.org`) in the SSL certificate as Subject Alternative Names (SAN). (optional, default: `false`)
 * `LETSENCRYPT_EMAIL`: Email used for certificate renewal notifications (optional)
 * `LETSENCRYPT_CHAIN`: Preferred certificate chain (e.g. `ISRG Root X1`, see [https://letsencrypt.org/certificates](https://letsencrypt.org/certificates/) for more details) (optional)
 * `TESTING`: `true` or `false`, indicating whether a staging SSL certificate should be generated or not (optional, default: `false`)

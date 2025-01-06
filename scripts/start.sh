@@ -30,15 +30,6 @@ else
   LETSENCRYPT_WILDCARD="false"
 fi
 
-# Determine the certificate type based on LETSENCRYPT_WILDCARD_DOMAIN_SAN
-# If true, generate a wildcard certificate that includes both the wildcard domain and the main domain (SAN - Subject Alternative Name)
-if [ "$LETSENCRYPT_WILDCARD_DOMAIN_SAN" = "true" ]; then
-  echo "INFO: A wildcard SSL certificate will be created, including both the wildcard domain and the main domain"
-  LETSENCRYPT_DOMAIN="*.$LETSENCRYPT_DOMAIN,$LETSENCRYPT_DOMAIN"
-else
-  LETSENCRYPT_WILDCARD_DOMAIN_SAN="false"
-fi
-
 # Set default preferred chain if no value specified
 if [ -z "$LETSENCRYPT_CHAIN" ]; then
   echo "INFO: LETSENCRYPT_CHAIN is unset, using default chain"
@@ -61,16 +52,12 @@ if [ -z "$PKCS12_PASSWORD" ]; then
   PKCS12_PASSWORD=""
 fi
 
-LETSENCRYPT_MAIN_DOMAIN=$(echo "${LETSENCRYPT_DOMAIN#\*\.}" | cut -d ',' -f1)
-
 # Print variables
 echo "DUCKDNS_TOKEN: $DUCKDNS_TOKEN"
 echo "DUCKDNS_DOMAIN: $DUCKDNS_DOMAIN"
 echo "LETSENCRYPT_DOMAIN: $LETSENCRYPT_DOMAIN"
 echo "LETSENCRYPT_EMAIL: $LETSENCRYPT_EMAIL"
 echo "LETSENCRYPT_WILDCARD: $LETSENCRYPT_WILDCARD"
-echo "LETSENCRYPT_WILDCARD_DOMAIN_SAN: $LETSENCRYPT_WILDCARD_DOMAIN_SAN"
-echo "LETSENCRYPT_MAIN_DOMAIN: $LETSENCRYPT_MAIN_DOMAIN"
 echo "LETSENCRYPT_CHAIN: $LETSENCRYPT_CHAIN"
 echo "TESTING: $TESTING"
 echo "UID: $UID"
@@ -97,7 +84,7 @@ else
 fi
 
 # Make variables available for hook
-export LETSENCRYPT_MAIN_DOMAIN
+export LETSENCRYPT_DOMAIN
 export PKCS12_PASSWORD
 export UID
 export GID
@@ -118,9 +105,9 @@ certbot certonly --manual --preferred-challenges dns \
   --agree-tos --keep $TEST_PARAM
 
 # Check for successful certificate generation
-if [ ! -d "/etc/letsencrypt/live/${LETSENCRYPT_MAIN_DOMAIN#\*\.}" ] || \
-   [ ! -f "/etc/letsencrypt/live/${LETSENCRYPT_MAIN_DOMAIN#\*\.}/fullchain.pem" ] || \
-   [ ! -f "/etc/letsencrypt/live/${LETSENCRYPT_MAIN_DOMAIN#\*\.}/privkey.pem" ]; then
+if [ ! -d "/etc/letsencrypt/live/${LETSENCRYPT_DOMAIN#\*\.}" ] || \
+   [ ! -f "/etc/letsencrypt/live/${LETSENCRYPT_DOMAIN#\*\.}/fullchain.pem" ] || \
+   [ ! -f "/etc/letsencrypt/live/${LETSENCRYPT_DOMAIN#\*\.}/privkey.pem" ]; then
   echo "ERROR: Failed to create SSL certificates"
   exit 1
 fi
